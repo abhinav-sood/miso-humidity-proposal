@@ -62,10 +62,14 @@
 
 ### Stage 1 status
 - Complete. Raw load files load correctly, gaps are characterized, no duplicates, no zeros, units confirmed, no spike problems.
+- Stage 2 rules were decided on 2026-10-20 (see next entry).
 
-### Decisions to make before Stage 2 (set before looking at any hourly results)
-1. Which hour a reading belongs to (proposal: `interval_start_utc` rounded down to the hour).
-2. How to combine the 12 readings in an hour (proposal: mean). Note that "daily peak" will then mean the highest hourly mean, not the highest instantaneous reading.
-3. Minimum readings per hour to keep an hour (proposal: a threshold such as 9 of 12, with others marked missing). [Record my chosen threshold and why.]
+## 2026-10-20 | Phase 2 | Stage 2 rules for hourly aggregation (decided before any hourly results)
 
-- **Affects:** Stage 2 (hourly aggregation, daily table), and the number of usable days in 2025.
+- **Rule 1, hour assignment:** Each 5-minute reading belongs to the hour of its `interval_start_utc`, rounded down. Reason: using the start time keeps each reading in the hour it mostly covers, and the weather data must use the same hour convention so load and weather line up.
+- **Rule 2, aggregation:** Hourly load is the mean of the readings present in that hour (not the sum divided by 12). Daily peak is the highest hourly mean, not the highest single 5-minute reading. Reason: hourly averages are the standard unit for comparison, and the paper must state that "daily peak" means highest hourly average, which is a little lower than the highest instantaneous reading.
+- **Rule 3, minimum coverage:** An hour is kept only if it has 9 or more of 12 readings (at least 45 minutes of coverage). Hours with 8 or fewer are marked missing and not filled in. Reason: tolerates the common 1-2 reading gaps but avoids false lows or highs from hours built on a few readings.
+- **Known example:** On 2026-08-16, the gap leaves the 11:00 a.m. Central hour (16:00 UTC) with 1 reading, so it is dropped. The next hour (17:00 UTC) has 9 readings but is missing its first 15 minutes, which are in a ramp, so its mean runs slightly high. Minor; noted here.
+- **Open rule, days with a dropped hour:** A day with a missing hour has an incomplete daily MWh, and its peak could be understated if the missing hour is near the afternoon peak. Decide after counting how many days are affected. Do not decide based on how those days affect model results.
+- **To do in Stage 2:** (1) After aggregating, count dropped hours in each year and list their dates. (2) Count days with at least one dropped hour. (3) Set and log the day rule. (4) Log the final number of usable days (expected 91 for 2025 and 92 for 2026, minus any excluded under the day rule).
+- **Affects:** 02_prepare_load.py, daily peak, hour of peak, daily MWh, and the number of usable days.
