@@ -98,11 +98,50 @@
   - No interpolation. Each filled hour is listed in `outputs/tables/miso_fill_log.csv`, and every hour is labelled in the `source` column (`gridstatus`, `miso_dfal`, or `missing`).
 - **Day rule (settled; was the open rule above):** A local day is "usable" only if all 24 hours are present after filling. Other days stay in the daily table but are flagged `usable = False`. Reason: a missing hour could hide the day's true peak. Decided from the data structure, before any model results exist. [Record the number of flagged days.]
 - **Testing note:** Scripts 02-04 were tested end to end on SYNTHETIC data shaped like the real files, including a wrong-hour-shift case (validation correctly stopped the fill) and a missing-report case (affected days correctly flagged). The real MISO download step could not be tested here, so the first real run is the real test.
-- **To fill in after the first real run:**
-  - Validation summary table (shift 0 row): n hours ___, mean signed % difference ___ (systematic offset between MISO and Grid Status), median abs % ___, 95th percentile abs % ___.
-  - Number of hours filled from MISO: 2025 ___, 2026 ___. Remaining missing hours in the window: ___.
-  - Number of days flagged unusable: 2025 ___, 2026 ___ (dates: ___).
-  - Hours that had partial Grid Status data (1-8 readings) and were replaced by MISO values (see `replaced_partial_gridstatus_hour` in the fill log): ___.
-  - Add `xlrd` version to the software note (needed to read .xls).
 - **Methods-section caution:** filled hours come from a different source (MISO submitted meter data, hourly) than the rest (Grid Status 5-minute real-time load, averaged to hourly). Report the validation result and the count of filled hours.
-- **Affects:** all daily peaks, hour of peak and daily MWh, the number of usable days in 2025 (now expected to be 92, not 91), and the Stage 3 comparison.
+- **Affects:** all daily peaks, hour of peak and daily MWh, the number of usable days in 2025 (now 92, not 91), and the Stage 3 comparison.
+
+## 2026-10-23 | Phase 2 | First real run of 02, 03 and 04: results
+
+- **All three scripts ran to completion** on the real data, with no errors.
+- **MISO validation passed.** Six validation days (the 15th of June, July and August in each year), 143 overlapping hours (144 possible; one hour had no Grid Status value to compare). Percent difference = (MISO - Grid Status) / Grid Status.
+
+  | Hour shift | Median abs % | 95th pct abs % | Max abs % | Mean signed % |
+  |---|---|---|---|---|
+  | -1 | 3.346 | 6.531 | 7.170 | 0.169 |
+  | **0** | **0.303** | **0.604** | **0.768** | **0.029** |
+  | +1 | 2.713 | 5.649 | 6.456 | 0.020 |
+
+  (Shifts of +/-2 and +/-3 hours are worse still; full table in `outputs/tables/miso_validation_summary.csv`.)
+- **What this means:**
+  - The documented hour convention fits best by a wide margin. Shift 0 is about 9 times better than shift +1 or -1 on the median, so the MISO hours line up with the Grid Status hours as assumed (MISO clock = UTC-5 all year = Central daylight time in summer).
+  - Thresholds met (set before the run): median 0.303% vs. a limit of 1.0%, 95th percentile 0.604% vs. a limit of 3.0%.
+  - No systematic offset: the mean signed difference is +0.029%, so MISO's submitted meter data and the Grid Status real-time series agree on average. No bias correction was applied or needed.
+- **Fill result:** both years have 92 days, all usable (all 24 hours present), so no days were flagged unusable. Evidence: the unadjusted comparison used usable days only and counts 92 days in each year (2025: 65 weekdays + 27 weekend days; 2026: 66 weekdays + 26 weekend days; these match the calendar). Local June 1, 2025 is therefore filled from MISO and included.
+- **Still to fill in from the `03` printout or `outputs/tables/miso_fill_log.csv`:**
+  - Number of hours filled from MISO: 2025 ___, 2026 ___.
+  - Hours that had partial Grid Status data (1-8 readings) and were replaced by MISO values (column `replaced_partial_gridstatus_hour`): ___.
+  - `xlrd` version (needed to read .xls), and pandas and numpy versions, in the software note.
+
+### Unadjusted comparison of the two summers (NOT controlled for weather)
+
+Source: `outputs/tables/summer_comparison.csv`; 92 usable days per year. Peak = highest hourly mean in a Central-time day.
+
+| Days | Measure | 2025 mean (MW) | 2026 mean (MW) | Difference |
+|---|---|---|---|---|
+| all | daily peak | 102,923 | 105,441 | +2.45% |
+| all | daily mean | 87,316 | 89,683 | +2.71% |
+| all | daily minimum | 70,128 | 72,763 | +3.76% |
+| weekdays | daily peak | 104,672 | 107,206 | +2.42% |
+| weekdays | daily mean | 88,963 | 91,374 | +2.71% |
+| weekdays | daily minimum | 71,093 | 73,796 | +3.80% |
+| weekends | daily peak | 98,711 | 100,961 | +2.28% |
+| weekends | daily mean | 83,351 | 85,389 | +2.44% |
+| weekends | daily minimum | 67,803 | 70,141 | +3.45% |
+
+- **Size of the 2025 to 2026 difference:** about +2.5% on daily peak (roughly 2.5 GW) and +2.7% on daily mean, about +3.8% on the daily minimum. **This settles the earlier correction: the difference is about 2.5-4%, not 20-30%.**
+- **Observations (descriptive only, NOT evidence for a cause):**
+  - The daily minimum rose more than the daily peak (+3.8% vs. +2.4%). A rising baseline is the pattern a roughly constant added load would produce, but warmer nights in 2026 would also raise the minimum, so weather has to be accounted for before reading anything into it.
+  - Weekdays and weekends differ little (peak +2.42% vs. +2.28%), a small gap on 26-27 weekend days. Dr. Holloway suggested data centers might show a weekday-daytime pattern; this table shows nothing clear either way.
+- **Not yet done:** the same comparison adjusted for weather (needs the NASA POWER pull, Stage 4/5). Until then, do not attribute the difference to data centers, air conditioning or anything else.
+- **Effect on the plan:** the year-to-year level shift in the models is about 2.5 GW, not the tens of GW I earlier feared. It is still comparable in size to the effect being tested (humidity), so how to handle it must still be decided before fitting any model, with Dr. Holloway.
