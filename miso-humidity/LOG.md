@@ -37,7 +37,7 @@
 - **2025:** 26,896 normal 5-minute intervals. 119 short gaps (89 of one missing reading, 30 of two to six missing), totaling 184 missing readings. One large gap of 2 days 13 h 20 min, about 735 missing readings. 184 + 735 = 919, the full shortfall. No spacing shorter than 5 minutes, so no duplicate timestamps.
 - **2026:** 27,750 normal intervals. Only short gaps, the longest 1 h 15 min (14 missing readings, on 2026-08-16 from 16:00 to 17:15 UTC, which is 11:00 a.m. to 12:15 p.m. Central). Total missing: 116, the full shortfall. No duplicates.
 - **2025 large gap:** Data stops after the interval ending 2025-05-30 15:45 UTC and resumes at 2025-06-02 05:00 UTC (CDT: Fri May 30 10:45 a.m. to Mon June 2 12:00 a.m.). **Local June 1, 2025 (a Sunday) has no data at all**, so the 2025 summer has 91 usable days. May 30-31 fall in the padding and do not matter.
-- **Decision:** Exclude local June 1, 2025 from daily peaks and models. Do not interpolate a whole missing day, because it would create invented data that models would treat as real.
+- **Decision:** Exclude local June 1, 2025 from daily peaks and models. Do not interpolate a whole missing day, because it would create invented data that models would treat as real. **SUPERSEDED 2026-10-22:** Dr. Holloway asked me to fill gaps from MISO's own reports. MISO has real values for this day, so June 1, 2025 is filled from MISO instead of excluded, subject to the validation in the 2026-10-22 entry. Still no interpolation.
 - **Cause of gaps:** Unknown. They are in the source data, not caused by my query.
 
 ### Load values
@@ -73,3 +73,36 @@
 - **Open rule, days with a dropped hour:** A day with a missing hour has an incomplete daily MWh, and its peak could be understated if the missing hour is near the afternoon peak. Decide after counting how many days are affected. Do not decide based on how those days affect model results.
 - **To do in Stage 2:** (1) After aggregating, count dropped hours in each year and list their dates. (2) Count days with at least one dropped hour. (3) Set and log the day rule. (4) Log the final number of usable days (expected 91 for 2025 and 92 for 2026, minus any excluded under the day rule).
 - **Affects:** 02_prepare_load.py, daily peak, hour of peak, daily MWh, and the number of usable days.
+
+## 2026-10-22 | Phase 2 | Filling gaps from MISO reports (Dr. Holloway's instruction)
+
+- **Instruction:** Dr. Holloway said to fill the missing data directly from the MISO reports. This replaces my earlier plan to exclude June 1, 2025.
+- **Source report:** MISO "Forecasted and Actual Load Report" (Historical Daily Forecast and Actual Load by Local Resource Zone), files named `{YYYYMMDD}_df_al.xls` at docs.misoenergy.org/marketreports/. Inspected two files with `03_explore_raw_miso_file.py` (dates 20250715 and 20250601).
+- **Facts found in the files:**
+  - Real binary Excel (.xls) files, not HTML tables. Read with `pd.read_excel(header=4)`; needs the `xlrd` package.
+  - Each file covers 7 days starting the day before its date, but holds ACTUAL load only for the first day; the other six days are forecast only. **Market day D comes from the file dated D+1.** (Observed: file 20250715 has actuals for July 14; file 20250602 has actuals for June 1.)
+  - Hourly data (not 5-minute), columns per zone plus `MISO ActualLoad (MWh)`. The six zone columns add up to the MISO total (checked on the first row of 20250715: 75,233.06).
+  - `HourEnding` runs 1-24 (hour ending 1 = the first hour of the market day). Units are MWh per hour, i.e. average MW.
+  - The file says "submitted meter data", so it may differ slightly from the real-time series behind Grid Status `miso_load`.
+  - MISO has data for June 1, 2025, a day completely missing from Grid Status, so that hole is in the Grid Status data (not necessarily in MISO's).
+- **Time convention (UNVERIFIED in the file itself):** MISO's clock is believed to be fixed EST (UTC-5) all year; in summer that equals Central daylight time. The script tests this against Grid Status before filling, instead of assuming it.
+- **Pipeline now:** `02_prepare_load.py` (hourly UTC tables, saved to data/processed) -> `03_fill_from_miso.py` (validate, then fill) -> `04_daily_table.py` (Central-time daily table, comparison tables and figures).
+- **Validation rules (set BEFORE looking at the comparison):**
+  - Test days: the 15th of June, July and August in each year (6 days; a fixed rule, not hand-picked).
+  - Compare MISO hourly values with Grid Status hourly means. Test hour shifts of -3 to +3 hours; the documented convention (shift 0) must fit best.
+  - At shift 0: median absolute difference at most 1.0%, 95th percentile at most 3.0%, at least 72 overlapping hours.
+  - If any check fails, nothing is filled and the script stops. [Confirm or change these thresholds BEFORE the first run, and note it here.]
+- **Fill rules:**
+  - Only hours that are empty in the Grid Status hourly table are filled, and only inside the June 1 - Aug 31 Central window. Existing Grid Status values are never overwritten.
+  - This includes hours dropped by the 9-of-12 rule (1-8 readings): the MISO value replaces the partial Grid Status hour.
+  - No interpolation. Each filled hour is listed in `outputs/tables/miso_fill_log.csv`, and every hour is labelled in the `source` column (`gridstatus`, `miso_dfal`, or `missing`).
+- **Day rule (settled; was the open rule above):** A local day is "usable" only if all 24 hours are present after filling. Other days stay in the daily table but are flagged `usable = False`. Reason: a missing hour could hide the day's true peak. Decided from the data structure, before any model results exist. [Record the number of flagged days.]
+- **Testing note:** Scripts 02-04 were tested end to end on SYNTHETIC data shaped like the real files, including a wrong-hour-shift case (validation correctly stopped the fill) and a missing-report case (affected days correctly flagged). The real MISO download step could not be tested here, so the first real run is the real test.
+- **To fill in after the first real run:**
+  - Validation summary table (shift 0 row): n hours ___, mean signed % difference ___ (systematic offset between MISO and Grid Status), median abs % ___, 95th percentile abs % ___.
+  - Number of hours filled from MISO: 2025 ___, 2026 ___. Remaining missing hours in the window: ___.
+  - Number of days flagged unusable: 2025 ___, 2026 ___ (dates: ___).
+  - Hours that had partial Grid Status data (1-8 readings) and were replaced by MISO values (see `replaced_partial_gridstatus_hour` in the fill log): ___.
+  - Add `xlrd` version to the software note (needed to read .xls).
+- **Methods-section caution:** filled hours come from a different source (MISO submitted meter data, hourly) than the rest (Grid Status 5-minute real-time load, averaged to hourly). Report the validation result and the count of filled hours.
+- **Affects:** all daily peaks, hour of peak and daily MWh, the number of usable days in 2025 (now expected to be 92, not 91), and the Stage 3 comparison.

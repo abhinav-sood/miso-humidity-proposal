@@ -1,0 +1,10 @@
+days,measure,2025_mean,2026_mean,pct_difference,2025_n_days,2026_n_days
+all days,peak_mw,102922.8,105441.08,2.45,92,92
+all days,mean_mw,87316.2,89682.77,2.71,92,92
+all days,min_mw,70127.71,72763.25,3.76,92,92
+weekdays,peak_mw,104672.34,107206.01,2.42,65,66
+weekdays,mean_mw,88963.24,91374.34,2.71,65,66
+weekdays,min_mw,71093.18,73796.1,3.8,65,66
+weekends,peak_mw,98710.93,100960.86,2.28,27,26
+weekends,mean_mw,83351.09,85388.77,2.44,27,26
+weekends,min_mw,67803.44,70141.39,3.45,27,26
