@@ -145,3 +145,28 @@ Source: `outputs/tables/summer_comparison.csv`; 92 usable days per year. Peak = 
   - Weekdays and weekends differ little (peak +2.42% vs. +2.28%), a small gap on 26-27 weekend days. Dr. Holloway suggested data centers might show a weekday-daytime pattern; this table shows nothing clear either way.
 - **Not yet done:** the same comparison adjusted for weather (needs the NASA POWER pull, Stage 4/5). Until then, do not attribute the difference to data centers, air conditioning or anything else.
 - **Effect on the plan:** the year-to-year level shift in the models is about 2.5 GW, not the tens of GW I earlier feared. It is still comparable in size to the effect being tested (humidity), so how to handle it must still be decided before fitting any model, with Dr. Holloway.
+
+## 2026-10-27 | Phase 4 | Project focus decided; weather points; NASA POWER time standard
+
+### Focus decision (Dr. Holloway)
+- **Approved framing (reported 2026-10-27):** combine the humidity question with the ISO-forecast benchmark. Main question: how close can an open model built on NASA POWER weather get to MISO's own day-ahead load forecast, and does adding humidity (dew point, later Heat Index) help? The 2025-to-2026 load difference is a **secondary** question using the same data.
+- [Record her answer on whether she means predicting load from OBSERVED weather or forecasting ahead.]
+- **Consequence for the paper:** POWER is reanalysis (weather that already happened), so my models predict load GIVEN the weather. MISO's forecast also has to predict the weather. The comparison therefore favors my models, and the paper must say so.
+- **Claim to verify before citing:** that MISO's load forecasts already use dew point (seen in a summary of a MISO presentation, not yet checked at the source). Until verified, humidity is framed as a question we test, not as something operators miss.
+- **MISO forecast data:** not yet pulled. Wait until the Grid Status monthly row quota resets on 2026-11-01. First list the MISO load forecast datasets, read their metadata (resolution, date range, columns) and estimate the row cost.
+
+### Weather points (proposed; confirm final list)
+- Rule: the number of points per MISO zone group follows the zone's share of load in the MISO report file (hour ending 1, 2025-07-14; one overnight hour, so approximate): LRZ1 15.9%, LRZ2_7 24.3%, LRZ3_5 13.4%, LRZ4 6.3%, LRZ6 13.2%, LRZ8_9_10 27.0%. Within each group, the largest or best-known MISO load center. City-to-zone assignments are from memory; check against MISO's zone map.
+- Points: Minneapolis (44.98, -93.27); Milwaukee (43.04, -87.91); Detroit (42.33, -83.05); St. Louis (38.63, -90.20); Des Moines (41.59, -93.62); Indianapolis (39.77, -86.16); New Orleans (29.95, -90.07); Little Rock (34.75, -92.29).
+- Chicago was in the original suggestion but is excluded: ComEd (northern Illinois) is in PJM, not MISO. [Verify on MISO's map.]
+- Madison, WI (43.07, -89.40) considered. [Record decision: swap for Milwaukee, add as a 9th point, or leave out, and the reason.]
+- Check that no two points fall in the same POWER grid cell (0.5 deg latitude x 0.625 deg longitude).
+- Chosen BEFORE seeing any weather-vs-load results, so the selection cannot be tuned to the results.
+- Simple mean across points for now; population or load weighting is a Phase 6 item.
+
+### NASA POWER facts
+- **Time standard (checked in the rOpenSci `nasapower` documentation; the official POWER page was blocked from my tool):** `time_standard` accepts UTC or LST (local solar time), and the **default is LST**. Request UTC explicitly, otherwise the weather is shifted by several hours against the UTC load data.
+- Community choice affects parameter units. Hourly queries allow at most 15 parameters per query. The API throttles rapid repeated requests; exact limits not stated there.
+- **Not yet verified (read the official page: power.larc.nasa.gov/docs/services/api/temporal/hourly/):** endpoint URL, exact parameter names for T2M, T2MDEW and RH2M at hourly resolution, units for the chosen community, missing-value code (I believe -999, unconfirmed), date range limit per request, and the latest available date.
+- **Check after the first pull:** daily temperature should peak at about 20-22 UTC for the central US in summer (about 3-5 p.m. Central). If the raw data instead peaks around hour 14-16, it is in local solar time, not UTC.
+- Raw pulls are saved to `data/raw/` as received, one file per point and year, before any processing.
