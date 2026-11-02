@@ -159,7 +159,7 @@ Source: `outputs/tables/summer_comparison.csv`; 92 usable days per year. Peak = 
 - Rule: the number of points per MISO zone group follows the zone's share of load in the MISO report file (hour ending 1, 2025-07-14; one overnight hour, so approximate): LRZ1 15.9%, LRZ2_7 24.3%, LRZ3_5 13.4%, LRZ4 6.3%, LRZ6 13.2%, LRZ8_9_10 27.0%. Within each group, the largest or best-known MISO load center. City-to-zone assignments are from memory; check against MISO's zone map.
 - Points: Minneapolis (44.98, -93.27); Milwaukee (43.04, -87.91); Detroit (42.33, -83.05); St. Louis (38.63, -90.20); Des Moines (41.59, -93.62); Indianapolis (39.77, -86.16); New Orleans (29.95, -90.07); Little Rock (34.75, -92.29).
 - Chicago was in the original suggestion but is excluded: ComEd (northern Illinois) is in PJM, not MISO. [Verify on MISO's map.]
-- Madison, WI (43.07, -89.40) considered. [Record decision: swap for Milwaukee, add as a 9th point, or leave out, and the reason.]
+- Swapped Milwaukee to Madison because of MG&E connection
 - Check that no two points fall in the same POWER grid cell (0.5 deg latitude x 0.625 deg longitude).
 - Chosen BEFORE seeing any weather-vs-load results, so the selection cannot be tuned to the results.
 - Simple mean across points for now; population or load weighting is a Phase 6 item.
