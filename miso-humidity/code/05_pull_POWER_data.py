@@ -10,7 +10,7 @@ NASA_POWER_API_URL = "https://power.larc.nasa.gov/api/temporal"
 
 cities = [
     {"name": "minneapolis",  "lat": 44.98, "lon": -93.27},
-    {"name": "milwaukee",    "lat": 43.04, "lon": -87.90},
+    {"name": "madison",    "lat": 43.07, "lon": -89.40},
     {"name": "detroit",      "lat": 42.33, "lon": -83.05},
     {"name": "st_louis",    "lat": 38.63, "lon": -90.20},
     {"name": "des_moines",   "lat": 41.59, "lon": -93.62},
