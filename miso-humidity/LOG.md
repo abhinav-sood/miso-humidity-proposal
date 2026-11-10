@@ -37,7 +37,7 @@
 - **2025:** 26,896 normal 5-minute intervals. 119 short gaps (89 of one missing reading, 30 of two to six missing), totaling 184 missing readings. One large gap of 2 days 13 h 20 min, about 735 missing readings. 184 + 735 = 919, the full shortfall. No spacing shorter than 5 minutes, so no duplicate timestamps.
 - **2026:** 27,750 normal intervals. Only short gaps, the longest 1 h 15 min (14 missing readings, on 2026-08-16 from 16:00 to 17:15 UTC, which is 11:00 a.m. to 12:15 p.m. Central). Total missing: 116, the full shortfall. No duplicates.
 - **2025 large gap:** Data stops after the interval ending 2025-05-30 15:45 UTC and resumes at 2025-06-02 05:00 UTC (CDT: Fri May 30 10:45 a.m. to Mon June 2 12:00 a.m.). **Local June 1, 2025 (a Sunday) has no data at all**, so the 2025 summer has 91 usable days. May 30-31 fall in the padding and do not matter.
-- **Decision:** Exclude local June 1, 2025 from daily peaks and models. Do not interpolate a whole missing day, because it would create invented data that models would treat as real. **SUPERSEDED 2026-10-22:** Dr. Holloway asked me to fill gaps from MISO's own reports. MISO has real values for this day, so June 1, 2025 is filled from MISO instead of excluded, subject to the validation in the 2026-10-22 entry. Still no interpolation.
+- **Decision:** Exclude local June 1, 2025 from daily peaks and models. Do not interpolate a whole missing day, because it would create invented data that models would treat as real. **SUPERSEDED 2026-10-22:** Tracey asked me to fill gaps from MISO's own reports. MISO has real values for this day, so June 1, 2025 is filled from MISO instead of excluded, subject to the validation in the 2026-10-22 entry. Still no interpolation.
 - **Cause of gaps:** Unknown. They are in the source data, not caused by my query.
 
 ### Load values
@@ -74,9 +74,9 @@
 - **To do in Stage 2:** (1) After aggregating, count dropped hours in each year and list their dates. (2) Count days with at least one dropped hour. (3) Set and log the day rule. (4) Log the final number of usable days (expected 91 for 2025 and 92 for 2026, minus any excluded under the day rule).
 - **Affects:** 02_prepare_load.py, daily peak, hour of peak, daily MWh, and the number of usable days.
 
-## 2026-10-22 | Phase 2 | Filling gaps from MISO reports (Dr. Holloway's instruction)
+## 2026-10-22 | Phase 2 | Filling gaps from MISO reports (Tracey's instruction)
 
-- **Instruction:** Dr. Holloway said to fill the missing data directly from the MISO reports. This replaces my earlier plan to exclude June 1, 2025.
+- **Instruction:** Tracey said to fill the missing data directly from the MISO reports. This replaces my earlier plan to exclude June 1, 2025.
 - **Source report:** MISO "Forecasted and Actual Load Report" (Historical Daily Forecast and Actual Load by Local Resource Zone), files named `{YYYYMMDD}_df_al.xls` at docs.misoenergy.org/marketreports/. Inspected two files with `03_explore_raw_miso_file.py` (dates 20250715 and 20250601).
 - **Facts found in the files:**
   - Real binary Excel (.xls) files, not HTML tables. Read with `pd.read_excel(header=4)`; needs the `xlrd` package.
@@ -142,13 +142,13 @@ Source: `outputs/tables/summer_comparison.csv`; 92 usable days per year. Peak = 
 - **Size of the 2025 to 2026 difference:** about +2.5% on daily peak (roughly 2.5 GW) and +2.7% on daily mean, about +3.8% on the daily minimum. **This settles the earlier correction: the difference is about 2.5-4%, not 20-30%.**
 - **Observations (descriptive only, NOT evidence for a cause):**
   - The daily minimum rose more than the daily peak (+3.8% vs. +2.4%). A rising baseline is the pattern a roughly constant added load would produce, but warmer nights in 2026 would also raise the minimum, so weather has to be accounted for before reading anything into it.
-  - Weekdays and weekends differ little (peak +2.42% vs. +2.28%), a small gap on 26-27 weekend days. Dr. Holloway suggested data centers might show a weekday-daytime pattern; this table shows nothing clear either way.
+  - Weekdays and weekends differ little (peak +2.42% vs. +2.28%), a small gap on 26-27 weekend days. Tracey suggested data centers might show a weekday-daytime pattern; this table shows nothing clear either way.
 - **Not yet done:** the same comparison adjusted for weather (needs the NASA POWER pull, Stage 4/5). Until then, do not attribute the difference to data centers, air conditioning or anything else.
-- **Effect on the plan:** the year-to-year level shift in the models is about 2.5 GW, not the tens of GW I earlier feared. It is still comparable in size to the effect being tested (humidity), so how to handle it must still be decided before fitting any model, with Dr. Holloway.
+- **Effect on the plan:** the year-to-year level shift in the models is about 2.5 GW, not the tens of GW I earlier feared. It is still comparable in size to the effect being tested (humidity), so how to handle it must still be decided before fitting any model, with Tracey.
 
 ## 2026-10-27 | Phase 4 | Project focus decided; weather points; NASA POWER time standard
 
-### Focus decision (Dr. Holloway)
+### Focus decision (Tracey)
 - **Approved framing (reported 2026-10-27):** combine the humidity question with the ISO-forecast benchmark. Main question: how close can an open model built on NASA POWER weather get to MISO's own day-ahead load forecast, and does adding humidity (dew point, later Heat Index) help? The 2025-to-2026 load difference is a **secondary** question using the same data.
 - [Record her answer on whether she means predicting load from OBSERVED weather or forecasting ahead.]
 - **Consequence for the paper:** POWER is reanalysis (weather that already happened), so my models predict load GIVEN the weather. MISO's forecast also has to predict the weather. The comparison therefore favors my models, and the paper must say so.
@@ -170,3 +170,50 @@ Source: `outputs/tables/summer_comparison.csv`; 92 usable days per year. Peak = 
 - **Not yet verified (read the official page: power.larc.nasa.gov/docs/services/api/temporal/hourly/):** endpoint URL, exact parameter names for T2M, T2MDEW and RH2M at hourly resolution, units for the chosen community, missing-value code (I believe -999, unconfirmed), date range limit per request, and the latest available date.
 - **Check after the first pull:** daily temperature should peak at about 20-22 UTC for the central US in summer (about 3-5 p.m. Central). If the raw data instead peaks around hour 14-16, it is in local solar time, not UTC.
 - Raw pulls are saved to `data/raw/` as received, one file per point and year, before any processing.
+
+## 2026-11-10: Project direction update
+
+**Where the pipeline stands**
+- NASA POWER hourly weather (UTC) pulled for 8 points x 2 summers (16 files). Points: Minneapolis, Madison, Detroit, St. Louis, Des Moines, Indianapolis, New Orleans, Little Rock. Madison replaced Milwaukee (decision 2026-11-02). Milwaukee files moved to data/raw/nasa_power_unused/, not used.
+- Inspection (2026-11-02): 2,328 hourly values per parameter per file, no missing values, UTC confirmed (warmest hour 19-20 UTC). T2M/T2MDEW in C, RH2M in %. The echoed coordinates equal the requested ones, so they do not show the MERRA-2 grid cell (0.5 x 0.625 deg).
+- 06_merge.py: weather averaged over the 8 points (simple mean) -> joined to hourly filled load on UTC hour -> Central days -> daily table (184 days, saved data/processed/daily_merged.csv).
+- Sanity check passed: plot of daily peak vs. daily Tmax (outputs/figures/peak_vs_tmax.png) shows load rising clearly with temperature (about 85 GW to 120 GW over 24-35 C). The 2026 summer has most of the hottest days.
+- Bug caught: load_2025 was reading the 2026 file (copy-paste). Caught because the daily table had 92 days instead of 184. Shape check alone missed it (2,208 x 2 = 4,416). Added a unique-index check.
+
+**Problem: dew point**
+- At least one hour has T2MDEW > T2M (11.75 vs 11.49 C). Count across all files: [FILL IN].
+- Tracey (2026-11-04): likely a known issue with dew point in MERRA-2 (the data set behind POWER), cited a GRL 2021 paper (I could not open it). She advised avoiding dew point if possible.
+- Decision pending: use specific humidity (QV2M) instead of T2MDEW as the humidity variable. Check QV2M availability at hourly level: [FILL IN]. RH2M may share the problem; check how it is derived.
+
+**Direction change: ML first (Tracey, 2026-11-09)**
+- Goal is proof of concept: can NASA data support forecasts close to professional-grade MISO forecasts?
+- Approach: ML model first (e.g., gradient boosting / random forest); the regression (Model 1: Tmax + Tmax^2 + calendar; Model 2: adds humidity) stays as a simple baseline.
+- Humidity question becomes an ablation: same ML model with and without humidity features.
+- Risk: only 92 training days. Mitigations: simple/regularized models, cross-validation inside 2025 only, no use of 2026 for any choice. Hourly modeling is an option to raise if daily models overfit (more rows, but the hours are correlated).
+
+**Variable selection (my choice; approval from Tracey 2026-11-10)**
+- Candidates to test (one-request check for hourly availability and codes first): QV2M, RH2M, ALLSKY_SFC_SW_DWN, WS2M, PRECTOTCORR (verify code; PRECTOT may be outdated), CLOUD_AMT, TS.
+- Not using T2MDEW (per Tracey). T2MWET not used (reported MERRA-2 errors; unverified).
+- Possible engineered features: cooling degree days, previous-day temperature, consecutive hot days, temperature-humidity index.
+- Experiments, fixed BEFORE seeing any 2026 results:
+  1. Basic: T2M + humidity (QV2M) + calendar
+  2. Expanded: 1 + solar, wind, precipitation
+  3. Engineered: 2 + lags, heat-wave duration, THI
+- Reasons and sources for each variable: [FILL IN with real citations, e.g., the Yes Energy load forecasting article and any papers].
+- Daily summary rule for each variable (mean, max, or sum): [FILL IN before modeling].
+- Variables chosen/screened using 2025 only. No choices based on 2026 results.
+
+**Caveats to state in the paper**
+- POWER gives observed weather, not forecasts. My models predict load given the weather; MISO's forecast also has to predict the weather, so the benchmark favors my models.
+- MERRA-2 is gridded reanalysis, not station data. The simple 8-point mean is crude (population weighting is Stage 9).
+- 2026 daily peak is about 2.5% higher than 2025 (unadjusted). Handling of this level shift: [DECIDE WITH Tracey].
+
+**Next steps**
+1. Count T2MDEW > T2M hours across the 16 files.
+2. One-request test pull for candidate codes (one city, one summer); check codes, units, missing values.
+3. Pull the chosen variables for all 16 point-summers into data/raw/nasa_power_extra/; rerun inspection checks.
+4. Mean tmax and mean peak by year (first Stage 6 numbers).
+5. Models: baseline regression, then ML, with and without humidity.
+6. After Nov 1 quota reset: find MISO load forecast in Grid Status; check metadata and row cost before pulling.
+
+**Still to record from earlier stages:** hours filled from MISO per year, partial hours replaced, package versions (including xlrd).

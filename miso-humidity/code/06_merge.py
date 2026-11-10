@@ -1,6 +1,9 @@
 import json
 from pathlib import Path
 import pandas as pd
+import matplotlib
+matplotlib.use("Agg")           
+import matplotlib.pyplot as plt
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 POWER_DIR = PROJECT_ROOT / "data" / "raw" / "nasa_power"
@@ -26,10 +29,57 @@ load_2025 = pd.read_csv(f"{PROJECT_ROOT}/data/processed/hourly_load_filled_utc_2
 
 
 
-load_2026 = load_2025 = pd.read_csv(f"{PROJECT_ROOT}/data/processed/hourly_load_filled_utc_2026.csv", index_col="hour_utc",  parse_dates=["hour_utc"])
+load_2026 = pd.read_csv(f"{PROJECT_ROOT}/data/processed/hourly_load_filled_utc_2026.csv", index_col="hour_utc",  parse_dates=["hour_utc"])
 
 load = pd.concat([load_2025, load_2026])
 
 #join weather to load
 
 merged = weather_hourly.join(load, how="inner")
+
+merged.index = merged.index.tz_convert("America/Chicago")
+
+merged = merged[merged.index.month.isin([6,7,8])].copy()
+
+merged["day"] = merged.index.normalize()
+
+
+#daily weather numbers
+tmax = merged.groupby("day")["T2M"].max()
+dew_mean = merged.groupby("day")["T2MDEW"].mean()
+rh_mean  = merged.groupby("day")["RH2M"].mean()
+
+daily_weather = pd.DataFrame({"tmax": tmax,
+                              "dew_mean": dew_mean,
+                              "rh_mean": rh_mean})
+
+daily_load = pd.read_csv(f"{PROJECT_ROOT}/data/processed/daily_load_all.csv", index_col = "local_day", parse_dates=["local_day"])
+daily_weather.index = daily_weather.index.tz_localize(None)
+
+#combine daily load and weather
+daily = daily_load.join(daily_weather, how = "inner")
+
+if f"{PROJECT_ROOT}/data/processed/daily_merged.csv".is_file() is False:
+    daily.to_csv(f"{PROJECT_ROOT}/data/processed/daily_merged.csv")
+
+use = daily[daily["usable"]]
+print("usable days:", len(use))
+
+
+FIG_DIR = PROJECT_ROOT / "outputs" / "figures"
+FIG_DIR.mkdir(parents=True, exist_ok=True)
+
+fig, ax = plt.subplots(figsize=(8, 5))
+for year, color in [(2025, "#2a78d6"), (2026, "#eb6834")]:
+    sub = use[use["year"] == year]
+    ax.scatter(sub["tmax"], sub["peak_mw"] / 1000, s=22, alpha=0.8,
+               color=color, label=str(year))
+
+ax.set_xlabel("Daily high temperature (°C, 8-city mean)")
+ax.set_ylabel("Daily peak load (GW)")
+ax.set_title("MISO daily peak load vs. temperature, June-August")
+ax.legend(frameon=False)
+fig.tight_layout()
+fig.savefig(FIG_DIR / "peak_vs_tmax.png", dpi=160)
+plt.close(fig)
+print("saved peak_vs_tmax.png")
