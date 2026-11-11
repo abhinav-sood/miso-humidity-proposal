@@ -217,3 +217,12 @@ Source: `outputs/tables/summer_comparison.csv`; 92 usable days per year. Peak = 
 6. After Nov 1 quota reset: find MISO load forecast in Grid Status; check metadata and row cost before pulling.
 
 **Still to record from earlier stages:** hours filled from MISO per year, partial hours replaced, package versions (including xlrd).
+
+**Sources**
+https://www.yesenergy.com/blog/electric-load-forecasting-methods
+https://pmc.ncbi.nlm.nih.gov/articles/PMC7125155/(The critical role of humidity in modeling summer electricity demand across the United States)
+https://ideas.repec.org/a/eee/energy/v142y2018icp473-485.html(Acclimation and the response of hourly electricity loads to meteorological variables)
+https://econpapers.repec.org/article/eeeenergy/v_3a128_3ay_3a2017_3ai_3ac_3ap_3a688-700.htm(Climate sensitivity of end-use electricity consumption in the built environment: An application to the state of Florida, United States)
+https://econpapers.repec.org/article/eeeappene/v_3a235_3ay_3a2019_3ai_3ac_3ap_3a1561-1582.htm(Evaluating regional climate-electricity demand nexus: A composite Bayesian predictive framework)
+https://doaj.org/article/f2e6b17cbd014f6a851e854fbe69dfa4(Research on short-term load forecasting of new-type power system based on GCN-LSTM considering multiple influencing factors)
+Test pull 2026-11-11: QV2M, ALLSKY_SFC_SW_DWN, WS2M, PRECTOTCORR and RH2M accepted at hourly level; no missing value
