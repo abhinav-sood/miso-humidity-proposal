@@ -225,4 +225,11 @@ https://ideas.repec.org/a/eee/energy/v142y2018icp473-485.html(Acclimation and th
 https://econpapers.repec.org/article/eeeenergy/v_3a128_3ay_3a2017_3ai_3ac_3ap_3a688-700.htm(Climate sensitivity of end-use electricity consumption in the built environment: An application to the state of Florida, United States)
 https://econpapers.repec.org/article/eeeappene/v_3a235_3ay_3a2019_3ai_3ac_3ap_3a1561-1582.htm(Evaluating regional climate-electricity demand nexus: A composite Bayesian predictive framework)
 https://doaj.org/article/f2e6b17cbd014f6a851e854fbe69dfa4(Research on short-term load forecasting of new-type power system based on GCN-LSTM considering multiple influencing factors)
+
+
+
 Test pull 2026-11-11: QV2M, ALLSKY_SFC_SW_DWN, WS2M, PRECTOTCORR and RH2M accepted at hourly level; no missing value
+
+Second weather pull 2026-11-11 into nasa_power_v2: added QV2M, ALLSKY_SFC_SW_DWN, WS2M, PRECTOTCORR; dropped T2MDEW
+
+v2 pull: ALLSKY_SFC_SW_DWN missing for 2026-09-01 00 to 2026-09-02 23 UTC (48 hours, all 8 cities); cause: NASA data not yet available [unconfirmed]. Affects the last 5 local hours of 2026-08-31. Decision: exclude 2026-08-31 from all model comparisons; revisit if a later re-pull fills it.

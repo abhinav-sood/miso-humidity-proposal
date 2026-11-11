@@ -4,7 +4,7 @@ from pathlib import Path
 import pandas as pd
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-POWER_DIR = PROJECT_ROOT / "data" / "raw" / "nasa_power"
+POWER_DIR = PROJECT_ROOT / "data" / "raw" / "nasa_power_v2"
 
 
 requested = {
@@ -30,7 +30,7 @@ for path in sorted(POWER_DIR.glob("power_*.json")):
         "lat_diff": round(lat - req_lat, 3), "lon_diff": round(lon - req_lon, 3),
     }
 
-    for p in ["T2M", "T2MDEW", "RH2M"]:
+    for p in ["T2M","RH2M","QV2M","ALLSKY_SFC_SW_DWN","WS2M","PRECTOTCORR"]:
         s = pd.Series(params[p])
         row[f"{p}_n"] = len(s)
         row[f"{p}_missing"] = int((s == MISSING_CODE).sum())
