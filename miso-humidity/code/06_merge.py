@@ -19,7 +19,7 @@ for jsonFile in POWER_DIR.rglob("*.json"):
         df["city"] = jsonFile.stem.replace("power_", "").rsplit("_", 1)[0]
         tables.append(df)
 
-#each row is one city at one hour with 52m, t2mdew, rh2m(%), hour_utc, city
+#each row is one city at one hour with T2M, RH2M, QV2M, ALLSKY_SFC_SW_DWN, WS2M and PRECTOTCORR
 weather = pd.concat(tables)
 
 #average to get one weather number per hour for all 8 cities(miso wide)        
@@ -51,18 +51,27 @@ merged["day"] = merged.index.normalize()
 
 
 #daily weather numbers
-tmax = merged.groupby("day")["T2M"].max()
-rh_mean  = merged.groupby("day")["RH2M"].mean()
 
-daily_weather = pd.DataFrame({"tmax": tmax,
-                              "rh_mean": rh_mean})
+
+daily_weather = pd.DataFrame({
+    "tmax":       merged.groupby("day")["T2M"].max(),
+    "rh_mean":    merged.groupby("day")["RH2M"].mean(),
+    "qv_mean":    merged.groupby("day")["QV2M"].mean(),
+    "solar_mean": merged.groupby("day")["ALLSKY_SFC_SW_DWN"].mean(),
+    "ws_mean":    merged.groupby("day")["WS2M"].mean(),
+    "precip_sum": merged.groupby("day")["PRECTOTCORR"].sum(),
+    "solar_hours": merged.groupby("day")["ALLSKY_SFC_SW_DWN"].count(),
+})
+
+print(daily_weather.shape)
+print(daily_weather[daily_weather["solar_hours"] < 24])
 
 daily_load = pd.read_csv(f"{PROJECT_ROOT}/data/processed/daily_load_all.csv", index_col = "local_day", parse_dates=["local_day"])
 daily_weather.index = daily_weather.index.tz_localize(None)
 
 #combine daily load and weather
 daily = daily_load.join(daily_weather, how = "inner")
-
+print(daily.shape)
 
 daily.to_csv(f"{PROJECT_ROOT}/data/processed/daily_merged.csv")
 
