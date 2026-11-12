@@ -233,3 +233,10 @@ Test pull 2026-11-11: QV2M, ALLSKY_SFC_SW_DWN, WS2M, PRECTOTCORR and RH2M accept
 Second weather pull 2026-11-11 into nasa_power_v2: added QV2M, ALLSKY_SFC_SW_DWN, WS2M, PRECTOTCORR; dropped T2MDEW
 
 v2 pull: ALLSKY_SFC_SW_DWN missing for 2026-09-01 00 to 2026-09-02 23 UTC (48 hours, all 8 cities); cause: NASA data not yet available [unconfirmed]. Affects the last 5 local hours of 2026-08-31. Decision: exclude 2026-08-31 from all model comparisons; revisit if a later re-pull fills it.
+
+tmax: the highest T2M of the day (already done).
+rh_mean: the mean RH2M.
+qv_mean: the mean QV2M.
+solar_mean: the mean ALLSKY_SFC_SW_DWN.
+ws_mean: the mean WS2M.
+precip_sum: the total PRECTOTCORR. Rain adds up over the day, so a sum fits better than a mean.

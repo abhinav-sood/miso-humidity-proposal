@@ -6,7 +6,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-POWER_DIR = PROJECT_ROOT / "data" / "raw" / "nasa_power"
+POWER_DIR = PROJECT_ROOT / "data" / "raw" / "nasa_power_v2"
 tables = []
 
 for jsonFile in POWER_DIR.rglob("*.json"):
@@ -14,6 +14,7 @@ for jsonFile in POWER_DIR.rglob("*.json"):
         data = json.load(file)
         variables = data["properties"]["parameter"]
         df = pd.DataFrame(variables)
+        df = df.replace(-999, float("nan"))
         df["hour_utc"] = pd.to_datetime(df.index, format="%Y%m%d%H").tz_localize("UTC")
         df["city"] = jsonFile.stem.replace("power_", "").rsplit("_", 1)[0]
         tables.append(df)
@@ -22,7 +23,10 @@ for jsonFile in POWER_DIR.rglob("*.json"):
 weather = pd.concat(tables)
 
 #average to get one weather number per hour for all 8 cities(miso wide)        
-weather_hourly = weather.groupby("hour_utc")[["T2M", "T2MDEW", "RH2M"]].mean()
+weather_hourly = weather.groupby("hour_utc")[["T2M", "RH2M", "QV2M", "ALLSKY_SFC_SW_DWN", "WS2M", "PRECTOTCORR"]].mean()
+print(weather_hourly.shape)
+print(weather_hourly.isna().sum())
+print(weather_hourly.tail(3))
 
 #read the load
 load_2025 = pd.read_csv(f"{PROJECT_ROOT}/data/processed/hourly_load_filled_utc_2025.csv", index_col="hour_utc",  parse_dates=["hour_utc"])
@@ -32,6 +36,8 @@ load_2025 = pd.read_csv(f"{PROJECT_ROOT}/data/processed/hourly_load_filled_utc_2
 load_2026 = pd.read_csv(f"{PROJECT_ROOT}/data/processed/hourly_load_filled_utc_2026.csv", index_col="hour_utc",  parse_dates=["hour_utc"])
 
 load = pd.concat([load_2025, load_2026])
+
+assert load.index.is_unique
 
 #join weather to load
 
@@ -46,11 +52,9 @@ merged["day"] = merged.index.normalize()
 
 #daily weather numbers
 tmax = merged.groupby("day")["T2M"].max()
-dew_mean = merged.groupby("day")["T2MDEW"].mean()
 rh_mean  = merged.groupby("day")["RH2M"].mean()
 
 daily_weather = pd.DataFrame({"tmax": tmax,
-                              "dew_mean": dew_mean,
                               "rh_mean": rh_mean})
 
 daily_load = pd.read_csv(f"{PROJECT_ROOT}/data/processed/daily_load_all.csv", index_col = "local_day", parse_dates=["local_day"])
@@ -59,8 +63,8 @@ daily_weather.index = daily_weather.index.tz_localize(None)
 #combine daily load and weather
 daily = daily_load.join(daily_weather, how = "inner")
 
-if f"{PROJECT_ROOT}/data/processed/daily_merged.csv".is_file() is False:
-    daily.to_csv(f"{PROJECT_ROOT}/data/processed/daily_merged.csv")
+
+daily.to_csv(f"{PROJECT_ROOT}/data/processed/daily_merged.csv")
 
 use = daily[daily["usable"]]
 print("usable days:", len(use))
