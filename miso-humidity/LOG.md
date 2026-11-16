@@ -240,3 +240,16 @@ qv_mean: the mean QV2M.
 solar_mean: the mean ALLSKY_SFC_SW_DWN.
 ws_mean: the mean WS2M.
 precip_sum: the total PRECTOTCORR. Rain adds up over the day, so a sum fits better than a mean.
+
+06b (2025 only, descriptive): peak load correlates 0.91 with tmax, 0.81 with qv_mean, 0.31 with solar, 0.27 with RH, about 0 with wind and rain; tmax and qv_mean correlate 0.76. No variables dropped.
+
+            peak_mw  tmax  rh_mean  qv_mean  solar_mean  ws_mean  precip_sum
+peak_mw        1.00  0.91     0.27     0.81        0.31    -0.06       -0.00
+tmax           0.91  1.00     0.13     0.76        0.32    -0.12       -0.11
+rh_mean        0.27  0.13     1.00     0.72       -0.12     0.19        0.57
+qv_mean        0.81  0.76     0.72     1.00        0.19     0.09        0.28
+solar_mean     0.31  0.32    -0.12     0.19        1.00     0.11       -0.48
+ws_mean       -0.06 -0.12     0.19     0.09        0.11     1.00        0.15
+precip_sum    -0.00 -0.11     0.57     0.28       -0.48     0.15        1.00
+
+mean temperature 29.01 vs 30.18 °C, and mean peak 102.9 vs 105.4 GW.(2025 and 2026, respectively)
