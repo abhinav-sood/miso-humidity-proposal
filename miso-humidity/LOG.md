@@ -253,3 +253,6 @@ ws_mean       -0.06 -0.12     0.19     0.09        0.11     1.00        0.15
 precip_sum    -0.00 -0.11     0.57     0.28       -0.48     0.15        1.00
 
 mean temperature 29.01 vs 30.18 °C, and mean peak 102.9 vs 105.4 GW.(2025 and 2026, respectively)
+
+
+Forecast pull 2026-11-16: miso_load_forecast_mid_term_by_region, both summers, June 1 to Sept 2 UTC, 156,240 rows each (all 10 zones, all published versions). Cost 312,480 rows, 8 requests. Day-ahead rule: the version published on D-1 (05:00 UTC convention); publish times look like date stamps, not true release times.
