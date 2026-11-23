@@ -1,0 +1,17 @@
+timing,model,cv_rmse_2025,max_depth,min_samples_leaf,n_estimators
+same_day,RF_E1_temp,4810.834961303221,None,2,
+same_day,RF_E2_humidity,5141.72033170079,3,5,
+same_day,RF_E3_expanded,5403.728034561039,3,5,
+same_day,RF_E4_engineered,5345.470250450811,3,5,
+same_day,GBM_E1_temp,4125.650718159095,2,,100
+same_day,GBM_E2_humidity,4335.822416378801,2,,300
+same_day,GBM_E3_expanded,5034.948364395837,2,,300
+same_day,GBM_E4_engineered,5133.927471813231,2,,100
+day_before,RF_E1_temp,6463.124340470732,3,5,
+day_before,RF_E2_humidity,6701.707422819604,None,5,
+day_before,RF_E3_expanded,6652.808563685538,3,5,
+day_before,RF_E4_engineered,6542.724410926023,5,2,
+day_before,GBM_E1_temp,6229.147062389258,2,,100
+day_before,GBM_E2_humidity,6248.93884481565,2,,100
+day_before,GBM_E3_expanded,6365.204601403019,2,,100
+day_before,GBM_E4_engineered,6513.798329622124,2,,100

@@ -1,0 +1,5 @@
+item,value
+hot_day_threshold_C_(75th_pct_of_2025_tmax),30.732
+rows_same_day,179.0
+rows_day_before,179.0
+days_left_out,5.0
