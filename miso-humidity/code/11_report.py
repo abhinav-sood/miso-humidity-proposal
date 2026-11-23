@@ -312,12 +312,16 @@ add("")
 add("1. **Observed vs. forecast weather.** NASA POWER describes weather that already happened; it has no forecasts. The *day-before* models "
     "therefore use yesterday's weather as a stand-in for tomorrow's, while MISO's forecast used an actual weather forecast for the target day. "
     "This handicaps our models and probably explains much of the gap to MISO. The *same-day* models are told the true weather, which MISO "
-    "did not have, so they flatter the models. What NASA POWER data alone can support lies between the two, closer to the day-before numbers "
-    "for a true forecast.")
+    "did not have, so they flatter the models. What NASA POWER data alone can support lies between the two; only the day-before "
+    "numbers are a real forecast.")
 add("2. **Level shift between summers.** Daily peaks were about 2.5% higher in 2026 and 2026 was also warmer. A model trained only on 2025 "
     f"carries 2025's level into 2026: the bias column shows the average over- or under-prediction (MISO: {gw(miso['test_bias'], True)} GW). "
     "The walk-forward test shows how much of this goes away when models may learn from earlier 2026 days. This is a description, "
     "not an explanation of the shift.")
+b_r1, b_r2 = row("same_day", "R1_regression_temp")["test_bias"], row("same_day", "R2_regression_humidity")["test_bias"]
+if abs(b_r2) < abs(b_r1):
+    add(f"   In the same-day regression, adding humidity moved the average bias from {gw(b_r1, True)} to {gw(b_r2, True)} GW, so part of its gain "
+        "may be humidity absorbing the 2025-to-2026 level shift rather than a pure weather effect. Treat that gain as a lead, not a conclusion.")
 add("3. **Hotter days than the training summer.** Tree-based models cannot predict beyond the range they saw in training; if 2026 has "
     "hotter days than 2025, gradient boosting and random forest will under-predict them while the regression can extrapolate.")
 add("4. **Small sample.** About 90 days per summer. Differences of a few tenths of a GW between models are within noise; use the intervals.")
